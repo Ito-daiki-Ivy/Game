@@ -1,7 +1,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-/* ===== スマホ対応：画面サイズ調整 ===== */
+/* ===== スマホ画面対応 ===== */
 function resizeCanvas() {
   const scale = Math.min(
     window.innerWidth / 400,
@@ -22,11 +22,9 @@ const player = {
   speed: 6
 };
 
-/* ===== 敵 ===== */
+/* ===== ゲーム状態 ===== */
 let enemies = [];
 let enemyTimer = 0;
-
-/* ===== 状態 ===== */
 let score = 0;
 let gameOver = false;
 
@@ -35,13 +33,33 @@ const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-/* ===== 入力（スマホ：タッチ） ===== */
+/* ===== 入力（スマホ：スライド） ===== */
 canvas.addEventListener("touchmove", e => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
   const touchX = e.touches[0].clientX - rect.left;
   player.x = touchX - player.width / 2;
 }, { passive: false });
+
+/* ===== タップ・クリックでリスタート ===== */
+canvas.addEventListener("click", () => {
+  if (gameOver) restartGame();
+});
+
+canvas.addEventListener("touchstart", e => {
+  if (gameOver) {
+    e.preventDefault();
+    restartGame();
+  }
+}, { passive: false });
+
+function restartGame() {
+  enemies = [];
+  enemyTimer = 0;
+  score = 0;
+  gameOver = false;
+  player.x = 180;
+}
 
 /* ===== 敵生成 ===== */
 function createEnemy() {
@@ -53,7 +71,7 @@ function createEnemy() {
   });
 }
 
-/* ===== 更新処理 ===== */
+/* ===== 更新 ===== */
 function update() {
   if (gameOver) return;
 
@@ -87,13 +105,11 @@ function update() {
     }
   });
 
-  // 画面外削除
   enemies = enemies.filter(e => e.y < canvas.height + 50);
-
   score++;
 }
 
-/* ===== 描画処理 ===== */
+/* ===== 描画 ===== */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -112,15 +128,20 @@ function draw() {
   ctx.font = "20px sans-serif";
   ctx.fillText("Score: " + score, 10, 30);
 
-  // ゲームオーバー
+  // ゲームオーバー表示
   if (gameOver) {
     ctx.fillStyle = "rgba(0,0,0,0.7)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = "#fff";
     ctx.font = "32px sans-serif";
-    ctx.fillText("GAME OVER", 90, 300);
+    ctx.fillText("GAME OVER", 90, 250);
+
+    ctx.font = "20px sans-serif";
+    ctx.fillText("Score: " + score, 140, 290);
+
     ctx.font = "18px sans-serif";
-    ctx.fillText("リロードで再スタート", 100, 340);
+    ctx.fillText("タップでリスタート", 110, 330);
   }
 }
 
