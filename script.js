@@ -1,7 +1,19 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// プレイヤー
+/* ===== スマホ対応：画面サイズ調整 ===== */
+function resizeCanvas() {
+  const scale = Math.min(
+    window.innerWidth / 400,
+    window.innerHeight / 600
+  );
+  canvas.style.width = 400 * scale + "px";
+  canvas.style.height = 600 * scale + "px";
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+/* ===== プレイヤー ===== */
 const player = {
   x: 180,
   y: 520,
@@ -10,19 +22,28 @@ const player = {
   speed: 6
 };
 
-// 敵
+/* ===== 敵 ===== */
 let enemies = [];
 let enemyTimer = 0;
 
-// 状態
+/* ===== 状態 ===== */
 let score = 0;
 let gameOver = false;
 
-// 入力
+/* ===== 入力（PC） ===== */
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
+/* ===== 入力（スマホ：タッチ） ===== */
+canvas.addEventListener("touchmove", e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touchX = e.touches[0].clientX - rect.left;
+  player.x = touchX - player.width / 2;
+}, { passive: false });
+
+/* ===== 敵生成 ===== */
 function createEnemy() {
   enemies.push({
     x: Math.random() * (canvas.width - 30),
@@ -32,12 +53,17 @@ function createEnemy() {
   });
 }
 
+/* ===== 更新処理 ===== */
 function update() {
   if (gameOver) return;
 
-  // プレイヤー移動
-  if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
-  if (keys["ArrowRight"] && player.x + player.width < canvas.width) player.x += player.speed;
+  // プレイヤー移動（PC）
+  if (keys["ArrowLeft"] && player.x > 0) {
+    player.x -= player.speed;
+  }
+  if (keys["ArrowRight"] && player.x + player.width < canvas.width) {
+    player.x += player.speed;
+  }
 
   // 敵生成
   enemyTimer++;
@@ -46,7 +72,7 @@ function update() {
     enemyTimer = 0;
   }
 
-  // 敵更新
+  // 敵移動
   enemies.forEach(e => e.y += e.speed);
 
   // 当たり判定
@@ -67,6 +93,7 @@ function update() {
   score++;
 }
 
+/* ===== 描画処理 ===== */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -76,7 +103,9 @@ function draw() {
 
   // 敵
   ctx.fillStyle = "#f44";
-  enemies.forEach(e => ctx.fillRect(e.x, e.y, e.size, e.size));
+  enemies.forEach(e =>
+    ctx.fillRect(e.x, e.y, e.size, e.size)
+  );
 
   // スコア
   ctx.fillStyle = "#fff";
@@ -95,6 +124,7 @@ function draw() {
   }
 }
 
+/* ===== ループ ===== */
 function loop() {
   update();
   draw();

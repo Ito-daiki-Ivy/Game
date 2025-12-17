@@ -15,6 +15,7 @@ h1 {
 canvas {
   background: #000;
   border: 2px solid #555;
+  touch-action: none; /* スマホのスクロール防止 */
 }
 
 #info {
